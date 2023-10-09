@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../../static/css/common.css">
+        <link rel="stylesheet" href="../../static/css/convert.css">
+    </head>
+    <body>
+        <div class="convert">
+            <div class="convert-title-bar">
+                <div id="closeConvertBtn" class="convert-close-btn">&times;</div>
+            </div>
+            <div id="viewport" class="convert-viewport">
+                <div class="container">
+                    <div class="option-label">Input File</div>
+                    <div class="option-area">
+                        <div class="text">
+                            <input type="text" id="sourceFile" readonly/>
+                            <div id="sourceFileSelection" class="btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zM2.5 3a.5.5 0 0 0-.5.5V6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5zM14 7H2v5.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-label">Format</div>
+                    <div class="option-area">
+                        <div class="radio"><input type="radio" name="format" id="video" data-format="MP4" checked><label for="video">MP4</label></div>
+                        <div class="radio"><input type="radio" name="format" id="audio" data-format="MP3"><label for="audio">MP3</label></div>
+                    </div>
+                    <div class="video-options">
+                        <div class="option-label">Size</div>
+                        <div class="option-area">
+                            <div class="radio"><input type="radio" name="spec" id="SizeNone" checked><label>None</label></div>
+                            <div class="radio"><input type="radio" name="spec" id="360p" ><label>360p</label></div>
+                            <div class="radio"><input type="radio" name="spec" id="480p"><label>480p</label></div>
+                            <div class="radio"><input type="radio" name="spec" id="720p" ><label>720p</label></div>
+                            <div class="radio"><input type="radio" name="spec" id="1080p"><label>1080p</label></div>
+                        </div>
+                        <div class="option-label">Rotation</div>
+                        <div class="option-area">
+                            <div class="radio"><input type="radio" name="rotation" id="RotationNone" checked><label>None</label></div>
+                            <div class="radio"><input type="radio" name="rotation" id="90Clockwise" ><label>+90</label></div>
+                            <div class="radio"><input type="radio" name="rotation" id="90CounterClockwise" ><label>-90</label></div>
+                        </div>
+                    </div>
+                    <div class="audio-options">
+                        <div class="option-label">Audio Bitrate</div>
+                        <div class="option-area">
+                            <div class="radio"><input type="radio" name="audioBitrate" id="BitrateNone" checked><label for="BitrateNone">None</label></div>
+                            <div class="radio"><input type="radio" name="audioBitrate" id="128"><label for="128">128</label></div>
+                            <div class="radio"><input type="radio" name="audioBitrate" id="160" ><label for="160">160</label></div>
+                            <div class="radio"><input type="radio" name="audioBitrate" id="192"><label for="192">192</label></div>
+                            <div class="radio"><input type="radio" name="audioBitrate" id="320"><label for="320">320</label></div>
+                        </div>
+                        <div class="option-label">Volume<label><input type="checkbox" id="MaxVolume"/>maximize</label></div>
+                        <div class="option-area">
+                            <input type="range" min="1" max="5" step="0.5" id="volume" value="1"/>
+                            <span id="volumeLabel">100%</span>
+                        </div>
+                    </div>
+                    <div class="button">
+                        <button id="convertBtn">Start</button>
+                        <button id="cancelBtn">Cancel</button>
+                        <button id="closeBtn">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
