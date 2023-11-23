@@ -97,8 +97,41 @@
     font-size: 14px;
 }
 
-.group-by .top-item{
-    border-top: 1px solid var(--menu-bgcolor);
+.group{
+    display: none;
+}
+
+.group-by .group{
+    word-break: break-all;
+    padding: 5px 0;
+    cursor: default;
+    text-overflow: ellipsis;
+    white-space: pre;
+    overflow: hidden;
+    color: var(--playlist-item-color);
+    font-size: 12px;
+    height: 19px;
+    line-height: 19px;
+    flex-direction: row;
+    display: flex;
+    align-items: center;
+}
+
+.group .left{
+    height: 1px;
+    width: 15px;
+    background-color: var(--playlist-item-color);
+}
+
+.group .mid{
+    flex: 1 1 auto;
+    margin: 0 5px;
+}
+
+.group .right{
+    height: 1px;
+    width: 100%;
+    background-color: var(--playlist-item-color);
 }
 
 .draghover{

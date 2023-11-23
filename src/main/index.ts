@@ -301,8 +301,6 @@ const initPlaylist = (fullPaths:string[]) => {
 
     currentIndex = 0;
 
-    respond("Playlist", "playlist-change", {files:playlistFiles, clearPlaylist:true})
-
     sortPlayList();
 
     shuffleList();
@@ -316,8 +314,6 @@ const addToPlaylist = (fullPaths:string[]) => {
     const newFiles = fullPaths.filter(fullPath => playlistFiles.findIndex(file => file.fullPath == fullPath) < 0).map(fullPath => util.toFile(fullPath));
 
     playlistFiles.push(...newFiles)
-
-    respond("Playlist", "playlist-change", {files:newFiles, clearPlaylist:false})
 
     sortPlayList();
 

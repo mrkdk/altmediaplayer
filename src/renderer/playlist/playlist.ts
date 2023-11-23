@@ -69,7 +69,11 @@ const onKeydown = (e:KeyboardEvent) => {
 
     if(e.key === "ArrowUp" || e.key === "ArrowDown"){
         e.preventDefault();
-        return moveSelection(e.key);
+        return moveSelection(e);
+    }
+
+    if(e.key === "Home" || e.key === "End"){
+        return moveSelectionUpto(e);
     }
 
     return handleShortcut("Playlist", e);
@@ -106,11 +110,14 @@ const onMouseDown = (e:MouseEvent) => {
             }
         }
 
-        toggleSelect(e)
+        return toggleSelect(e)
 
-    }else{
+    }
+
+    if(!e.target.classList.contains("group")){
         clearSelection();
     }
+
 }
 
 const onDragStart = (e:DragEvent) => {
@@ -160,13 +167,23 @@ const onFileDrop = (e:DragEvent) => {
 }
 
 const removeFromPlaylist = (data:Mp.RemovePlaylistItemResult) => {
+
     clearSelection();
+
     const targetNodes = data.removedFileIds.map(id => new DomElement(id).element)
+    const dirSet = new Set<string>();
     targetNodes.forEach(node => {
         if(currentElement && node.id === currentElement.id){
             currentElement = undefined;
         }
+        dirSet.add(node.getAttribute("data-dir") ?? "")
         Dom.fileList.element.removeChild(node)
+    })
+
+    dirSet.forEach(dir => {
+        if(!Dom.fileList.element.querySelectorAll(`div[data-dir="${dir}"]`).length){
+            new DomElement(dir).element.remove();
+        }
     })
 }
 
@@ -178,6 +195,11 @@ const toggleHighlightDropTarget = (e:DragEvent) => {
 
     dragState.targetElement?.classList.remove("draghover");
 
+    if(dragState.startElement?.getAttribute("data-dir") !== e.target.getAttribute("data-dir")){
+        dragState.targetElement = undefined;
+        return;
+    }
+
     dragState.targetElement = e.target;
 
     if(dragState.targetElement.id === dragState.startElement?.id) return;
@@ -188,17 +210,21 @@ const toggleHighlightDropTarget = (e:DragEvent) => {
 
 const endDragPlaylistItem = (e:DragEvent) => {
 
-    dropPlaylistItem();
-    toggleHighlightDropTarget(e)
+    if(dragState.targetElement){
 
-    const args = {
-        start:dragState.startIndex,
-        end:getChildIndex(dragState.startElement),
-        currentIndex:getChildIndex(currentElement)
+        dropPlaylistItem();
+        toggleHighlightDropTarget(e)
+
+        const args = {
+            start:dragState.startIndex,
+            end:getChildIndex(dragState.startElement),
+            currentIndex:getChildIndex(currentElement)
+        }
+
+        window.api.send("change-playlist-order", args);
+        window.api.send("playlist-item-selection-change", {selection})
+
     }
-
-    window.api.send("change-playlist-order", args);
-    window.api.send("playlist-item-selection-change", {selection})
 
     dragState.dragging = false;
     dragState.startElement = undefined;
@@ -226,6 +252,8 @@ const dropPlaylistItem = () => {
 const clearPlaylist = () => {
     selection.selectedId = "";
     selection.selectedIds = []
+    currentElement = undefined;
+    selectedElement = undefined;
     Dom.fileList.element.innerHTML = "";
 }
 
@@ -238,16 +266,16 @@ const clearSelection = () => {
 const toggleSelect = (e:MouseEvent) => {
 
     if(e.ctrlKey){
-        selectByCtrl(e)
+        selectByCtrl(e.target as HTMLElement)
         return;
     }
 
     if(e.shiftKey){
-        selectByShift(e);
+        selectByShift(e.target as HTMLElement);
         return
     }
 
-    selectByClick(e);
+    selectByClick(e.target as HTMLElement);
 
 }
 
@@ -269,42 +297,46 @@ const select = (target:HTMLElement | string) => {
     window.api.send("playlist-item-selection-change", {selection})
 }
 
-const selectByClick = (e:MouseEvent) => {
-    select(e.target as HTMLElement);
+const selectByClick = (target:HTMLElement) => {
+    select(target);
 }
 
-const selectByShift = (e:MouseEvent) => {
+const selectByShift = (target:HTMLElement) => {
 
     clearSelection();
 
     const range = [];
 
     if(selectedElement){
-        range.push(getChildIndex(selectedElement));
+        range.push(getChildNodeIndex(selectedElement));
     }else{
         range.push(0);
     }
 
-    range.push(getChildIndex(e.target as HTMLElement));
+    range.push(getChildNodeIndex(target));
 
     range.sort((a,b) => a - b);
 
     for(let i = range[0]; i <= range[1]; i++){
-        selection.selectedIds.push(Dom.fileList.element.children[i].id);
-        Dom.fileList.element.children[i].classList.add("selected")
+        const node = Dom.fileList.element.children[i];
+        if(!node.classList.contains("group")){
+            selection.selectedIds.push(node.id);
+            node.classList.add("selected")
+        }
     }
 
     window.api.send("playlist-item-selection-change", {selection})
 }
 
-const selectByCtrl = (e:MouseEvent) => {
+const selectByCtrl = (target:HTMLElement) => {
 
     if(!selectedElement){
-        selectByClick(e);
+        selectByClick(target);
         return;
     }
 
-    const target = (e.target as HTMLElement);
+    if(target.classList.contains("group")) return;
+
     selection.selectedIds.push(target.id)
 
     target.classList.add("selected")
@@ -317,31 +349,78 @@ const selectAll = () => {
     clearSelection();
 
     Array.from(Dom.fileList.element.children).forEach((node,_index) => {
-        node.classList.add("selected")
-        selection.selectedIds.push(node.id);
+        if(!node.classList.contains("group")){
+            node.classList.add("selected")
+            selection.selectedIds.push(node.id);
+        }
     })
 
     window.api.send("playlist-item-selection-change", {selection})
 
 }
 
-const moveSelection = (key:string) => {
+const findNext = (key:string, element:Element):HTMLElement | null => {
+
+    const nextElement = key === "ArrowDown" ? element.nextElementSibling : element.previousElementSibling
+
+    if(!nextElement) return null;
+
+    if(nextElement.classList.contains("group")){
+        return findNext(key, nextElement);
+    }
+
+    return nextElement as HTMLElement;
+
+}
+
+const moveSelection = (e:KeyboardEvent) => {
 
     if(!Dom.fileList.element.children.length) return;
 
-    const currentId = selection.selectedId ? selection.selectedId : Dom.fileList.element.children[0].id
+    const key = e.key;
 
-    let nextId;
-    if(key === "ArrowDown"){
-        nextId = new DomElement(currentId).element.nextElementSibling?.id
-    }else{
-        nextId = new DomElement(currentId).element.previousElementSibling?.id
+    if(e.shiftKey){
+        return moveSelectionByShit(key);
     }
 
-    if(!nextId) return;
+    const currentId = selection.selectedId ? selection.selectedId : Dom.fileList.element.children[0].id
+
+    const nextElement = findNext(key, new DomElement(currentId).element)
+
+    if(!nextElement) return;
 
     clearSelection();
-    select(nextId)
+    select(nextElement.id)
+}
+
+const moveSelectionByShit = (key:string) => {
+
+    if(!selection.selectedIds.length){
+        select(Dom.fileList.element.children[0].id);
+    }
+
+    const downward = selection.selectedId == selection.selectedIds[0];
+    const currentId = downward ? selection.selectedIds[selection.selectedIds.length -1] : selection.selectedIds[0]
+
+    const nextElement = findNext(key, new DomElement(currentId).element)
+
+    if(!nextElement) return;
+
+    return selectByShift(nextElement);
+}
+
+const moveSelectionUpto = (e:KeyboardEvent) => {
+
+    if(!Dom.fileList.element.children.length) return;
+
+    if(!e.shiftKey) return;
+
+    e.preventDefault();
+
+    const uptoElement = e.key === "Home" ? Dom.fileList.element.children[0] : Dom.fileList.element.children[Dom.fileList.element.children.length - 1]
+
+    selectByShift(uptoElement as HTMLElement);
+    scrollToElement(uptoElement as HTMLElement)
 }
 
 const onFileListItemClicked = (e:MouseEvent) => {
@@ -349,10 +428,19 @@ const onFileListItemClicked = (e:MouseEvent) => {
     window.api.send("load-file", {index, isAbsolute:true});
 }
 
-function getChildIndex(node:HTMLElement | undefined) {
+const getChildIndex = (node:HTMLElement | undefined) => {
     if(!node) return -1;
 
-    return Array.prototype.indexOf.call(Dom.fileList.element.childNodes, node);
+    const childNodes = Array.from(Dom.fileList.element.children).filter(childNode => !childNode.classList.contains("group"))
+
+    return Array.prototype.indexOf.call(childNodes, node);
+}
+
+const getChildNodeIndex = (node:HTMLElement | undefined) => {
+
+    if(!node) return -1;
+
+    return Array.prototype.indexOf.call(Dom.fileList.element.children, node);
 }
 
 const scrollToElement = (element:HTMLElement | undefined) => {
@@ -525,7 +613,29 @@ const createListItem = (file:Mp.MediaFile) => {
     return item
 }
 
+const createSeparator = (directory:string) => {
+
+    const group = document.createElement("div");
+    group.classList.add("group", "separator");
+    group.title = directory;
+    group.id = encodeURIComponent(directory);
+
+    const left = document.createElement("div");
+    left.classList.add("left", "separator");
+    const mid = document.createElement("div");
+    mid.classList.add("mid", "separator");
+    mid.textContent = directory;
+    const right = document.createElement("div");
+    right.classList.add("right", "separator");
+
+    group.append(left, mid, right)
+
+    return group;
+}
+
 const addToPlaylist = (data:Mp.PlaylistChangeEvent) => {
+
+    const currentId = currentElement?.id;
 
     if(data.clearPlaylist){
         clearPlaylist();
@@ -535,7 +645,8 @@ const addToPlaylist = (data:Mp.PlaylistChangeEvent) => {
 
     const fragment = document.createDocumentFragment();
 
-    let key = data.files[0].dir
+    let key = ""
+    let group:HTMLDivElement;
 
     data.files.forEach(file => {
 
@@ -543,10 +654,14 @@ const addToPlaylist = (data:Mp.PlaylistChangeEvent) => {
 
         if(file.dir != key){
             key = file.dir;
-            item.classList.add("top-item")
+            group = createSeparator(key)
+            fragment.append(group);
         }
 
-        if(file.id === currentElement?.id){
+        item.setAttribute("data-dir", group.id)
+
+        if(file.id === currentId){
+
             item.classList.add("current")
             currentElement = item;
         }
@@ -568,6 +683,7 @@ const applySortType = (config:Mp.SortType) => {
     Dom.sortBtn.element.setAttribute("data-sort", config.order)
 
     Dom.fileList.element.classList.remove("group-by")
+
     if(config.groupBy){
         Dom.fileList.element.classList.add("group-by")
     }

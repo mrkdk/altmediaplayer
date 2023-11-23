@@ -1,8 +1,8 @@
 {
-  "name": "altmediaplayer",
-  "productName": "ALT MediaPlayer",
+  "name": "mediaplayer",
+  "productName": "MediaPlayer",
   "version": "1.0.0",
-  "description": "ALT MediaPlayer",
+  "description": "MediaPlayer",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -12,16 +12,17 @@
     "lint": "eslint --ext .ts,.tsx .",
     "build": "electron-forge package && ts-node build.ts"
   },
-  "keywords": ["Media Player"],
+  "keywords": [],
   "author": {
-    "name": "mrkdk"
+    "name": "mrdkprj",
+    "email": "mrdkprj@gmail.com"
   },
   "license": "MIT",
   "devDependencies": {
     "@electron-forge/cli": "^6.0.4",
     "@electron-forge/plugin-webpack": "^6.0.4",
-    "@types/fluent-ffmpeg": "^2.1.21",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@types/fluent-ffmpeg": "^2.1.22",
     "@typescript-eslint/parser": "^5.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "electron": "^25.1.0",

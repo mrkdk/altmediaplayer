@@ -253,10 +253,15 @@ const onTimeUpdate = () => {
 }
 
 const updateVolume = (volume:number) => {
+
+    if(volume > 1 || volume < 0) return;
+
     Dom.video.element.volume = volume
-    mediaState.videoVolume = Dom.video.element.volume;
+    mediaState.videoVolume = volume;
+
     const progress = Math.floor(mediaState.videoVolume * 100)
     const progressRate = `${progress}%`;
+
     sliders.Volume.track.style.width = progressRate;
     sliders.Volume.thumb.style.left = `max(${progressRate} - ${THUM_WIDTH}px, 0px)`;
     sliders.Volume.thumb.title = progressRate;
@@ -264,9 +269,14 @@ const updateVolume = (volume:number) => {
 }
 
 const updateAmpLevel = (ampLevel:number) => {
+
+    if(ampLevel > 1 || ampLevel < 0) return;
+
     mediaState.ampLevel = ampLevel;
+
     const progress = Math.floor(mediaState.ampLevel * 100)
     const progressRate = `${progress}%`;
+
     sliders.Amp.track.style.width = progressRate;
     sliders.Amp.thumb.style.left = `max(${progressRate} - ${THUM_WIDTH}px, 0px)`;
     sliders.Amp.thumb.title = progressRate;
@@ -586,8 +596,7 @@ const prepare = (e:Mp.ReadyEvent) => {
     isMaximized = e.config.isMaximized;
     changeMaximizeIcon();
 
-    mediaState.videoVolume = e.config.audio.volume;
-    updateVolume(mediaState.videoVolume);
+    updateVolume(e.config.audio.volume);
 
     mediaState.ampLevel = e.config.audio.ampLevel;
     amplify();
