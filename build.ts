@@ -2,8 +2,8 @@ import {build} from "electron-builder"
 
 build({
     config: {
-        appId: "MediaPlayer",
-        productName: "MediaPlayer",
+        appId: "com.altmediaplayer.app",
+        productName: "ALT MediaPlayer",
         extraResources:[
             "./resources/ffmpeg.exe",
             "./resources/ffprobe.exe"
@@ -20,12 +20,10 @@ build({
                 {
                     "ext": ["mp4","mov","avi","wmv","webm","flv"],
                     "icon": "src/static/img/icon.ico",
-                    //"description": "Video File",
                 },
                 {
                     "ext": "mp3",
                     "icon": "src/static/img/icon_audio.ico",
-                    //"description": "Audio File"
                 },
 
             ]
@@ -37,19 +35,15 @@ build({
             fileAssociations: [
                 {
                     "ext": "mp4",
-                    //"icon": "src/static/img/icon.ico",
-                    //"description": "Video File",
                   },
                   {
                     "ext": "mp3",
-                    //"icon": "src/static/img/icon_audio.ico",
-                    //"description": "Audio File"
                   }
             ]
         },
         nsis: {
             oneClick: true,
-            allowToChangeInstallationDirectory: false,
+            deleteAppDataOnUninstall:true,
             runAfterFinish: false,
         }
     },

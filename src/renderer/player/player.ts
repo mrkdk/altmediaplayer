@@ -314,7 +314,7 @@ const initPlayer = () => {
     clearTimeTrackTooltip()
     Dom.video.element.src = "";
     Dom.title.element.textContent = "";
-    document.title = "MediaPlayer";
+    document.title = "ALT MediaPlayer";
     mediaState.videoDuration = 0;
     Dom.durationArea.element.textContent = formatTime(mediaState.videoDuration);
     Dom.currentTimeArea.element.textContent = formatTime(0);
@@ -349,7 +349,7 @@ const loadMedia = (e:Mp.FileLoadEvent) => {
 
 const onMediaLoaded = () => {
 
-    document.title = `MediaPlayer - ${currentFile.name}`
+    document.title = `ALT MediaPlayer - ${currentFile.name}`
     Dom.title.element.textContent = currentFile.name
     changeVideoSize();
 
